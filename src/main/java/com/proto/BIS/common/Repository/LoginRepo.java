@@ -1,6 +1,6 @@
 package com.proto.BIS.common.Repository;
 
-import com.Proto.demo.common.Model.LoginModel;
+import com.proto.BIS.common.Model.LoginModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

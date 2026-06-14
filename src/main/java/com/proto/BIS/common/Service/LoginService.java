@@ -1,7 +1,7 @@
 package com.proto.BIS.common.Service;
 
-import com.Proto.demo.common.Model.LoginModel;
-import com.Proto.demo.common.Repository.LoginRepo;
+import com.proto.BIS.common.Model.LoginModel;
+import com.proto.BIS.common.Repository.LoginRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class LoginService {

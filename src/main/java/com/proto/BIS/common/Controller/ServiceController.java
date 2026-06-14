@@ -1,7 +1,7 @@
 package com.proto.BIS.common.Controller;
 
-import com.Proto.demo.common.Model.ServicesModel;
-import com.Proto.demo.common.Service.WorkService;
+import com.proto.BIS.common.Model.ServicesModel;
+import com.proto.BIS.common.Service.WorkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;

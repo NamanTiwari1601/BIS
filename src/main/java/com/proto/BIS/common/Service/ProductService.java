@@ -1,7 +1,7 @@
 package com.proto.BIS.common.Service;
 
-import com.Proto.demo.common.Model.ProductModel;
-import com.Proto.demo.common.Repository.ProductRepo;
+import com.proto.BIS.common.Model.ProductModel;
+import com.proto.BIS.common.Repository.ProductRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

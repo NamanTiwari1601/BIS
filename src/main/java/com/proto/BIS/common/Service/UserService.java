@@ -1,7 +1,7 @@
 package com.proto.BIS.common.Service;
 
-import com.Proto.demo.common.Model.UserModel;
-import com.Proto.demo.common.Repository.UserRepo;
+import com.proto.BIS.common.Model.UserModel;
+import com.proto.BIS.common.Repository.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
