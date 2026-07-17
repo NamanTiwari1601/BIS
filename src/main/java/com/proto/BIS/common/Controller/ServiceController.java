@@ -2,44 +2,46 @@ package com.proto.BIS.common.Controller;
 
 import com.proto.BIS.common.Model.ServicesModel;
 import com.proto.BIS.common.Service.WorkService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/api/service")
+@RequiredArgsConstructor
+@CrossOrigin("htttp://localhost:5173")
 public class ServiceController {
 
-    @Autowired
-    WorkService service;
 
-    @RequestMapping("/services")
-    @ResponseBody
+    public final WorkService service;
+
+    @GetMapping("/services")
     public List<ServicesModel> getServices(){
         return service.getProducts();
     }
 
-    @RequestMapping("/service/{serId}")
-    @ResponseBody
+    @GetMapping("/service/{serId}")
     public ServicesModel getServiceById(@PathVariable int serId){
         return service.getProductsById(serId);
     }
 
     @PostMapping("/addService")
-    @ResponseBody
-    public void addService(@RequestBody ServicesModel model){
-        service.addProduct(model);
+    public ResponseEntity<ServicesModel> addService(@Valid @RequestBody ServicesModel model){
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.addProduct(model));
     }
 
     @PutMapping("/updateService")
-    @ResponseBody
-    public void updateService(ServicesModel model){
-        service.updateProduct(model);
+    public ResponseEntity<ServicesModel> updateService(@Valid @RequestBody ServicesModel model){
+       return ResponseEntity.ok(service.updateProduct(model));
     }
 
     @DeleteMapping("/deleteService/{serId}")
-    @ResponseBody
     public void deleteProduct(@PathVariable int serId){
         service.deleteProduct(serId);
     }

@@ -1,56 +1,43 @@
 package com.proto.BIS.common.Model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 
 @Component
 @Entity
+@Table(name="s_product")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class ProductModel {
 
-    public ProductModel() {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long productId;
+
+        @NotBlank(message = "Product Name cannot be null")
+        private String productName;
+
+        private String discription;
+
+        private double productPrice;
+
+        private Long productQuantity;
+
+        @CreationTimestamp
+        private LocalDateTime createdAt;
+
+        @UpdateTimestamp
+        private LocalDateTime updatedAt;
+
     }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int productId;
-    private String productName;
-
-    public String getDiscription() {
-        return discription;
-    }
-
-    public void setDiscription(String discription) {
-        this.discription = discription;
-    }
-
-    private String discription;
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public double getProductPrice() {
-        return productPrice;
-    }
-
-    public void setProductPrice(double productPrice) {
-        this.productPrice = productPrice;
-    }
-
-    private double productPrice;
-
-    public ProductModel(String productName, double productPrice,String disc) {
-        this.productName = productName;
-        this.productPrice = productPrice;
-        this.discription = disc;
-    }
-}

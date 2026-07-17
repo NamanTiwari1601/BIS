@@ -1,28 +1,33 @@
 package com.proto.BIS.common.Model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.stereotype.Component;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
 
 @Component
 @Entity
 @Table(name= "s_login")
-@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class LoginModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int loginId;
-    private int login_usrid;
-    private Date login_datetime;
-    private char login_flag;
+    private Long loginId;
+
+    private Long login_usrid;
+
+    @CreationTimestamp
+    private LocalDateTime login_datetime;
+
+    @Column(columnDefinition = "char(1)")
+    private char  login_flag;
+
 
 
 

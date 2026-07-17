@@ -2,41 +2,43 @@ package com.proto.BIS.common.Controller;
 
 import com.proto.BIS.common.Model.UserModel;
 import com.proto.BIS.common.Service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/api/User")
+@RequiredArgsConstructor
+@CrossOrigin("http://localhost:5173")
 public class UserController {
 
     @Autowired
     UserService service;
 
-    @RequestMapping("/Users")
-    @ResponseBody
+    @GetMapping("/getUsers")
     public List<UserModel> getUsers(){
         return service.getUsers();
     }
 
-    @RequestMapping("/getUser/{usrId}")
-    @ResponseBody
+    @GetMapping("/getUser/{usrId}")
     public UserModel getUserById(@PathVariable int usrId){
         return service.getUserById(usrId);
     }
 
     @PostMapping("/addUser")
-    @ResponseBody
-    public void addUser(@RequestBody UserModel mod){
-        service.addUser(mod);
+    public ResponseEntity<UserModel> addUser(@Valid @RequestBody UserModel mod){
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.addUser(mod));
     }
     @PutMapping("/updateUser")
-    @ResponseBody
-    public void updateUser(@RequestBody UserModel mod){
-        service.updateUser(mod);
+    public ResponseEntity<UserModel> updateUser(@RequestBody UserModel mod){
+       return ResponseEntity.ok( service.updateUser(mod));
     }
-
     @DeleteMapping("/deleteUser/{usrId}")
     public void deleteUser(@PathVariable int usrId){
         service.deleteUser(usrId);

@@ -3,14 +3,10 @@ package com.proto.BIS.common.Controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
+@RequestMapping("/api/Dashboard/")
 public class DashboardController {
-
-    @RequestMapping("/Dashboard")
-    @ResponseBody
-    public String Dashboard(){
-    return "Dashboard Page";
-    }
 
 }

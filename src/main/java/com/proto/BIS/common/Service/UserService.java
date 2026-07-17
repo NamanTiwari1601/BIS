@@ -3,16 +3,19 @@ package com.proto.BIS.common.Service;
 import com.proto.BIS.common.Model.UserModel;
 import com.proto.BIS.common.Repository.UserRepo;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class UserService {
 
-    @Autowired
-    UserRepo repo;
+
+    public final UserRepo repo;
 
     public List<UserModel> getUsers(){
         try {
@@ -31,19 +34,20 @@ public class UserService {
     }
 
     @Transactional
-    public void  addUser(UserModel mod){
+    public UserModel addUser(UserModel mod){
         try {
 
-            repo.save(mod);
+            return repo.save(mod);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Transactional
-    public void updateUser(UserModel mod){
+    public UserModel updateUser(UserModel mod){
         try{
-            repo.save(mod);
+
+            return repo.save(mod);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

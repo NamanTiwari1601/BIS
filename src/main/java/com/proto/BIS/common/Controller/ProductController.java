@@ -2,39 +2,42 @@ package com.proto.BIS.common.Controller;
 
 import com.proto.BIS.common.Model.ProductModel;
 import com.proto.BIS.common.Service.ProductService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
-
+@RestController
+@RequestMapping("/api/product")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class ProductController {
 
-@Autowired
-ProductService service;
 
-@RequestMapping("/Products")
-@ResponseBody
-    public List<ProductModel> ShowProducts(){
+public final ProductService service;
 
-    return service.getProducts();
+@GetMapping("/getProducts")
+    public ResponseEntity<List<ProductModel>> ShowProducts(){
+
+    return  ResponseEntity.ok(service.getProducts());
 }
-@RequestMapping("/Products/{prodId}")
-@ResponseBody
-    public ProductModel getProductbyId(@PathVariable int prodId){
-    return service.getProductsById(prodId);
+@GetMapping("/getProducts/{prodId}")
+    public ResponseEntity<ProductModel> getProductbyId(@PathVariable int prodId){
+    return ResponseEntity.ok(service.getProductsById(prodId));
     }
 
     @PostMapping("/addProducts")
-    @ResponseBody
-    public void addProduct(@RequestBody ProductModel prod){
-        service.addProduct(prod);
+    public ResponseEntity<ProductModel> addProduct(@RequestBody ProductModel prod)
+    {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.addProduct(prod));
     }
 
     @PutMapping("/updateProduct")
-    @ResponseBody
     public void updateProduct(@RequestBody ProductModel prod){
     service.updateProduct(prod);
     }
