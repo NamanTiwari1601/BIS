@@ -63,7 +63,7 @@ public class UserService {
     public void changePassword(int userId, ChangePasswordRequest password){
         UserModel user= repo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-        if(!passwordEncoder.matches(user.getUserPass(),password.getOldPassword())){
+        if(!passwordEncoder.matches(password.getOldPassword(),user.getUserPass())){
             throw new IllegalArgumentException("Current Password Is Incorrect");
         }
         user.setUserPass(passwordEncoder.encode(password.getNewPassword()));

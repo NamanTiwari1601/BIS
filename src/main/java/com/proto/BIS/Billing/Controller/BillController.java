@@ -27,13 +27,9 @@ public class BillController {
     @PostMapping("/create")
     @Operation(summary = "create Bills", description="create bills by this")
     public ResponseEntity<?> createBill(@RequestBody BillRequestDTO bill){
-        try{
             BillResponseDTO save=service.createBill(bill);
             return ResponseEntity.status(HttpStatus.CREATED).body(save);
 
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
     }
 
     @GetMapping("/All")

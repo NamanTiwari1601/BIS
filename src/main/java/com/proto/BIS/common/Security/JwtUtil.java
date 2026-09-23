@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -12,10 +13,14 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private static final String SECRET="BISSecretKeyForJWTTokenGenerationAndValidation2024";
+
+    @Value("${jwt.secret}")
+    private String jwtSecret ;
     private static final long EXPRIATION=1000 * 60 * 60 * 24;
 
-    public final Key key= Keys.hmacShaKeyFor(SECRET.getBytes());
+    private Key getKey() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes());  // ← use jwtSecret
+    }
 
     public String generateToken(String userName, boolean isAdmin){
         return Jwts.builder()
@@ -23,7 +28,7 @@ public class JwtUtil {
                 .claim("isAdmin",isAdmin)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis()+EXPRIATION))
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(getKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -45,7 +50,7 @@ public class JwtUtil {
     }
     public Claims getClaims(String token){
         return Jwts.parserBuilder()
-                .setSigningKey(key)
+                .setSigningKey(getKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

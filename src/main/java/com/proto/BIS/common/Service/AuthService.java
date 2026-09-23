@@ -7,6 +7,7 @@ import com.proto.BIS.common.Model.UserModel;
 import com.proto.BIS.common.Repository.UserRepo;
 import com.proto.BIS.common.Security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,11 +18,13 @@ public class AuthService {
 
     @Autowired
     JwtUtil jwtUtil;
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     public AuthResponse login(AuthRequest request){
         UserModel user= repo.findByUserName(request.getUserName()).orElseThrow(() -> new IllegalArgumentException("User Not Found"));
 
-        if(!user.getUserPass().equals(request.getUserPass())){
+        if(!passwordEncoder.matches(request.getUserPass(), user.getUserPass())){
             throw  new IllegalArgumentException("Invalid password");
         }
 

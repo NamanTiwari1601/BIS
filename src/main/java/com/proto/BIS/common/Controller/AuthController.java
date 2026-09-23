@@ -28,12 +28,9 @@ public class AuthController {
     @ApiResponse(responseCode = "200",description = "Login successful")
     @ApiResponse(responseCode = "401", description="Invalid credentials")
     public ResponseEntity<?> login (@RequestBody AuthRequest request){
-        try{
             AuthResponse response = authService.login(request);
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        }
+
     }
 
 }

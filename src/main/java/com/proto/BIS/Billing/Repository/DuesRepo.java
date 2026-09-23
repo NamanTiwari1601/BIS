@@ -1,16 +1,15 @@
 package com.proto.BIS.Billing.Repository;
 
-
+import com.proto.BIS.Billing.Model.Bills;
 import com.proto.BIS.Billing.Model.DuesModel;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-
 public interface DuesRepo extends JpaRepository<DuesModel, Integer> {
     List<DuesModel> findByStatus(String status);
+    List<DuesModel> findByStatusIn(List<String> statuses);
     List<DuesModel> findByClientPhone(String phone);
-    List<DuesModel> findByBill(Integer billId);
-
+    List<DuesModel> findByBill(Bills bill);
+    List<DuesModel> findByBill_BillId(Integer billId);
 }
