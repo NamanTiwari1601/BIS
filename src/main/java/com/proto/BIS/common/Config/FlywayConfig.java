@@ -1,25 +1,29 @@
 package com.proto.BIS.common.Config;
 
 import org.flywaydb.core.Flyway;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.sql.DataSource;
+import org.springframework.core.env.Environment;
 
 @Configuration
 public class FlywayConfig {
 
-    @Autowired
-    DataSource dataSource;
-
-    @Bean(initMethod = "migrate")
-    public Flyway flyway() {
-        return Flyway.configure()
-                .dataSource(dataSource)
-                .locations("classpath:db/migration")
-                .baselineOnMigrate(true)
-                .baselineVersion("1")
-                .load();
+    @Bean
+    public static BeanFactoryPostProcessor flywayMigrationProcessor(Environment env) {
+        return (ConfigurableListableBeanFactory beanFactory) -> {
+            Flyway flyway = Flyway.configure()
+                    .dataSource(
+                            env.getProperty("spring.datasource.url"),
+                            env.getProperty("spring.datasource.username"),
+                            env.getProperty("spring.datasource.password")
+                    )
+                    .locations("classpath:db/migration")
+                    .baselineOnMigrate(true)
+                    .baselineVersion("1")
+                    .load();
+            flyway.migrate();
+        };
     }
 }

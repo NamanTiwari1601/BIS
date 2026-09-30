@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/dues/**").authenticated()
                         .requestMatchers("/api/product/**").authenticated()
                         .requestMatchers("/api/service/**").authenticated()
+                        .requestMatchers("/api/inventory/**").authenticated()
                         .requestMatchers("/api/User/**").authenticated()
                         .anyRequest().authenticated()
                 )

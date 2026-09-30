@@ -1,5 +1,6 @@
 package com.proto.BIS.Billing.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -32,9 +33,9 @@ public class DuesModel {
     @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "invalid phone number")
     private String clientPhone;
 
-    private double totalAmount;
-    private  double paidAmount;
-    private double dueAmount;
+    private Double totalAmount;
+    private  Double paidAmount;
+    private Double dueAmount;
 
     private LocalDate duedate;
 
@@ -43,6 +44,7 @@ public class DuesModel {
 
     private String notes;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "bill_id")
     private Bills bill;

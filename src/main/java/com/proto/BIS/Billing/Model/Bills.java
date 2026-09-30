@@ -29,11 +29,11 @@ public class Bills {
     private LocalDateTime billDate;
 
     private double billAmount;
-    private double billDues=0.0;
+    private Double billDues=0.0;
 
 
     @Column(columnDefinition = "boolean")
-    private boolean isDue=false;
+    private Boolean isDue;
 
     @ManyToOne
     @JoinColumn(name = "staff_id")
@@ -43,7 +43,7 @@ public class Bills {
     @Size(min = 2, max = 50, message = "name must be between 2 and 50 characters")
     private String clientName;
 
-    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+    @Pattern(regexp = "^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
             message = "Invalid email address")
     private String emailId;
 

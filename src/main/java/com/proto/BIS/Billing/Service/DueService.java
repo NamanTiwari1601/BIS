@@ -4,6 +4,9 @@ import com.proto.BIS.Billing.Model.Bills;
 import com.proto.BIS.Billing.Model.DuesModel;
 import com.proto.BIS.Billing.Repository.DuesRepo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -11,25 +14,37 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DueService {
     private final DuesRepo repo;
 
     public List<DuesModel> getAllDues() {
+        log.info("In get all dues");
         return repo.findAll();
     }
 
+    public Page<DuesModel> getAllDues(Pageable pageable) {
+        log.info("In get paginated dues: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
+        return repo.findAll(pageable);
+    }
+
     public List<DuesModel> getPendingDues() {
+        log.info("In get pending dues");
         return repo.findByStatusIn(List.of("PENDING", "PARTIAL"));
     }
 
     public DuesModel createStandaloneDues(DuesModel dues) {
+        log.info("In create standalone dues");
         if (dues == null) {
+            log.warn("Dues payload is null");
             throw new IllegalArgumentException("Dues payload is required");
         }
         if (dues.getClientName() == null || dues.getClientName().isBlank()) {
+            log.warn("Dues client name is missing");
             throw new IllegalArgumentException("Client name is required");
         }
         if (dues.getClientPhone() == null || dues.getClientPhone().isBlank()) {
+            log.warn("Dues client phone is missing");
             throw new IllegalArgumentException("Client phone is required");
         }
 
@@ -58,6 +73,7 @@ public class DueService {
     }
 
     public DuesModel createDuesFromBills(Bills bill, double amountPaid, LocalDate dueDate, String notes) {
+        log.info("In create dues from bill: billId={}, amountPaid={}", bill != null ? bill.getBillId() : null, amountPaid);
         double totalAmount = bill.getBillAmount();
         double dueAmount = Math.max(0.0, totalAmount - amountPaid);
         double paidAmount = Math.min(totalAmount, amountPaid);

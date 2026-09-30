@@ -1,5 +1,6 @@
 package com.proto.BIS.Billing.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.proto.BIS.common.Model.ProductModel;
 import com.proto.BIS.common.Model.ServicesModel;
 import jakarta.persistence.*;
@@ -20,6 +21,7 @@ public class BillItemModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer billItemId;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name="bill_id")
     private Bills bill;
