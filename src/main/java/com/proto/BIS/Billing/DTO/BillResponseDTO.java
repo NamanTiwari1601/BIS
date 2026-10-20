@@ -16,6 +16,9 @@ public class BillResponseDTO {
     private Integer billId;
     private LocalDateTime billDate;
     private Double totalAmount;
+    private Double cashAmount;
+    private Double onlineAmount;
+    private String invoiceId;
     private Double Dues;
     private String paymentStatus;
     private LocalDate dueDate;

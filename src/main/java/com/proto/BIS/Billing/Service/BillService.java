@@ -6,6 +6,8 @@ import com.proto.BIS.Billing.DTO.BillRequestDTO;
 import com.proto.BIS.Billing.DTO.BillResponseDTO;
 import com.proto.BIS.Billing.Model.BillItemModel;
 import com.proto.BIS.Billing.Model.Bills;
+import com.proto.BIS.Package.Model.PackageModel;
+import com.proto.BIS.Package.Repository.PackageRepository;
 import com.proto.BIS.Billing.Repository.BillRepo;
 import com.proto.BIS.common.Model.ProductModel;
 import com.proto.BIS.common.Model.ServiceProduct;
@@ -38,6 +40,8 @@ public class BillService {
 
     public final WorkRepo serviceRepo;
 
+    public final PackageRepository packageRepo;
+
     public final ServiceProductRepository serviceProductRepository;
 
     public final UserRepo userRepo;
@@ -64,15 +68,23 @@ public class BillService {
         bills.setPaymentMode(request.getPaymentMode());
         bills.setEmailId(request.getClientEmail());
         bills.setNotes(request.getNotes());
+        bills.setInvoiceId(request.getInvoiceId());
+        log.info("Invoice No:-{}",request.getInvoiceId());
         log.info("Bill Date:-{}",LocalDateTime.now());
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new IllegalArgumentException("At least one bill item is required");
+        }
         for (BillItemRequestDTO item : request.getItems()) {
             boolean hasProduct = item.getProductId() != null;
             boolean hasService = item.getServiceId() != null;
+            boolean hasPackage = item.getPackageId() != null;
 
             BillItemModel billItem=new BillItemModel();
-            if (hasProduct == hasService) {
-                log.error("Each bill item must reference exactly one of product or service,not both or neither");
-                throw new IllegalArgumentException("Each bill item must reference exactly one of product or service,not both or neither ");
+            if (item.getQuantity() == null || item.getQuantity() <= 0) {
+                throw new IllegalArgumentException("Bill item quantity must be greater than zero");
+            }
+            if ((hasProduct ? 1 : 0) + (hasService ? 1 : 0) + (hasPackage ? 1 : 0) != 1) {
+                throw new IllegalArgumentException("Each bill item must reference exactly one of product, service, or package");
             }
             double subtotal;
             if (hasProduct) {
@@ -89,27 +101,46 @@ public class BillService {
                     throw new IllegalArgumentException("Insufficient stock for product: " + product.getProductName()
                             + ". Avaliable: " + product.getProductQuantity());
                 }
-                subtotal = product.getProductPrice() * item.getQuantity();
+                double price = product.getProductPrice();
+                subtotal = price * item.getQuantity();
                 log.info("Subtotal:-{}",subtotal);
                 Long prevQuantity = product.getProductQuantity();
                 Long newQuantity = prevQuantity - (long) item.getQuantity();
                 product.setProductQuantity(newQuantity);
                 productRepo.save(product);
                 billItem.setProduct(product);
+                billItem.setItemNameSnapshot(product.getProductName());
+                billItem.setUnitPriceSnapshot(price);
                 billItem.setQuantity(item.getQuantity());
                 log.info("Old Quantity:-{}",prevQuantity);
                 log.info("New Quantity:-{}",newQuantity);
-            } else {
+            } else if (hasService) {
                 log.info("In Services Section");
                 log.info("ServiceID:-{}",item.getServiceId());
                 ServicesModel service = serviceRepo.findById(item.getServiceId())
                         .orElseThrow(() -> {
                             log.error("Services not found");
                             return new IllegalArgumentException("Services not Found");});
-                subtotal = service.getServicePrice() * item.getQuantity();
+                double price = service.getServicePrice();
+                subtotal = price * item.getQuantity();
                 billItem.setServices(service);
+                billItem.setItemNameSnapshot(service.getServiceName());
+                billItem.setUnitPriceSnapshot(price);
+                billItem.setQuantity(item.getQuantity());
                 adjustLinkedProductStock(service, item.getQuantity());
                 log.info("Subtotal:-{}",subtotal);
+            } else {
+                PackageModel pack = packageRepo.findById(item.getPackageId())
+                        .orElseThrow(() -> new IllegalArgumentException("Package not found: " + item.getPackageId()));
+                if (!"ACTIVE".equalsIgnoreCase(pack.getStatus())) {
+                    throw new IllegalArgumentException("Package is not active: " + pack.getPackageName());
+                }
+                double price = pack.getPackagePrice();
+                subtotal = price * item.getQuantity();
+                billItem.setPackageModel(pack);
+                billItem.setItemNameSnapshot(pack.getPackageName());
+                billItem.setUnitPriceSnapshot(price);
+                billItem.setQuantity(item.getQuantity());
             }
             billItem.setSubtotal(subtotal);
             billItem.setBill(bills);
@@ -118,16 +149,29 @@ public class BillService {
         }
 
         log.info("Total:-{}",total);
-        double dis = request.getDiscountPercent();
-        log.info("Discount Percent:-{}%",dis);
-        total= total-((dis/100)*total);
+        double dis = request.getDiscountAmount();
+        log.info("Discount Amount:-{}",dis);
+        total= total-dis;
         double stpr = request.getGstPercent();
         log.info("GST Percent:-{}",stpr);
         total= total+((stpr/100)*total);
         log.info("Total after Discount and GST:-{}",total);
+        if("Mixed".equalsIgnoreCase(request.getPaymentMode())){
+            if(request.getCashAmount()== null|| request.getOnlineAmount()==null){
+                log.error("Both cash And online amount should  be present");
+                throw new IllegalArgumentException("Mixed Requires both cash and online payments");
+            }
+            bills.setCashAmount(request.getCashAmount());
+            bills.setOnlineAmount(request.getOnlineAmount());
+
+        }
+        else{
+            bills.setOnlineAmount(null);
+            bills.setCashAmount(null);
+        }
 
         bills.setBillAmount(total);
-        bills.setDiscountPercent(request.getDiscountPercent());
+        bills.setDiscountAmount(request.getDiscountAmount());
         bills.setGstPercent(request.getGstPercent());
         bills.setBillDate(LocalDateTime.now());
         bills.setItems(billItems);
@@ -242,14 +286,19 @@ public class BillService {
             BillItemResponseDTO dto= new BillItemResponseDTO();
             dto.setBillItemId(item.getBillItemId());
             dto.setBillId(bill.getBillId());
+            dto.setProductId(item.getProduct() != null ? item.getProduct().getProductId().intValue() : null);
+            dto.setServiceId(item.getServices() != null ? item.getServices().getServiceId().intValue() : null);
+            dto.setPackageId(item.getPackageModel() != null ? item.getPackageModel().getPackageId() : null);
             dto.setQuantity(item.getQuantity());
             dto.setSubTotal(item.getSubtotal());
+            dto.setUnitPrice(item.getUnitPriceSnapshot());
 
-            if (item.getServices()!=null){
-                if(item.getProduct()!=null){
-                    dto.setProductName(item.getProduct().getProductName());
-                }
-                dto.setServiceName(item.getServices().getServiceName());
+            if (item.getProduct() != null) {
+                dto.setProductName(item.getItemNameSnapshot());
+            } else if (item.getServices() != null) {
+                dto.setServiceName(item.getItemNameSnapshot());
+            } else if (item.getPackageModel() != null) {
+                dto.setPackageName(item.getItemNameSnapshot());
             }
             return dto;
         }).toList();

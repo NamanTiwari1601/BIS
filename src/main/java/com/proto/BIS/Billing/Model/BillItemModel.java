@@ -3,6 +3,7 @@ package com.proto.BIS.Billing.Model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.proto.BIS.common.Model.ProductModel;
 import com.proto.BIS.common.Model.ServicesModel;
+import com.proto.BIS.Package.Model.PackageModel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,6 +34,16 @@ public class BillItemModel {
     @ManyToOne
     @JoinColumn(name="service_id")
     private ServicesModel services;
+
+    @ManyToOne
+    @JoinColumn(name="package_id")
+    private PackageModel packageModel;
+
+    @Column(name = "item_name_snapshot")
+    private String itemNameSnapshot;
+
+    @Column(name = "unit_price_snapshot")
+    private double unitPriceSnapshot;
 
     private int  quantity;
 

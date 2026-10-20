@@ -20,10 +20,13 @@ public class BillRequestDTO {
     private String clientPhone;
     private String notes;
     private String paymentMode;
-    private Double discountPercent;
+    private Double discountAmount;
     private Double gstPercent;
     private String paymentStatus;
     private LocalDate dueDate;
+    private Double cashAmount;
+    private Double onlineAmount;
+    private String invoiceId;
     private List<BillItemRequestDTO> items;
 
 

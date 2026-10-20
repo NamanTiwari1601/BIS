@@ -25,11 +25,15 @@ public class Bills {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer billId;
+    private String invoiceId;
 
+    @Column(name = "bill_date")
     private LocalDateTime billDate;
 
     private double billAmount;
     private Double billDues=0.0;
+    private Double cashAmount;
+    private Double onlineAmount;
 
 
     @Column(columnDefinition = "boolean")
@@ -54,7 +58,7 @@ public class Bills {
 
     private String paymentMode;
 
-    private double discountPercent;
+    private double discountAmount;
 
     private double gstPercent;
     @OneToMany(mappedBy = "bill", cascade=CascadeType.ALL,orphanRemoval = true)
