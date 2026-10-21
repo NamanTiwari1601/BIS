@@ -1,6 +1,7 @@
 package com.proto.BIS.common.Model;
 
 import jakarta.persistence.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
@@ -20,7 +21,7 @@ import java.time.LocalDate;
 public class UserModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Integer userId;
 
     @NotBlank(message = "Name cannot be null")
     @Size(min=2, max = 50, message="Name must be between 2 and 50 characters")

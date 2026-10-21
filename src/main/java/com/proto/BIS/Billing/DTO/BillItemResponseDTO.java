@@ -16,8 +16,13 @@ public class BillItemResponseDTO {
 
     private Integer billId;
 
+    private Integer productId;
+    private Integer serviceId;
+    private Long packageId;
     private String productName;
     private String serviceName;
+    private String packageName;
+    private Double unitPrice;
     private Integer quantity;
     private Double subTotal;
 

@@ -1,0 +1,1 @@
+ALTER TABLE s_bill  RENAME COLUMN discount_percent TO discount_amount ;
