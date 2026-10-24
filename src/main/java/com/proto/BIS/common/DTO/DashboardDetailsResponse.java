@@ -1,10 +1,12 @@
 package com.proto.BIS.common.DTO;
 
+import com.proto.BIS.Package.Model.PackageServiceItemModel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -17,6 +19,7 @@ public class DashboardDetailsResponse {
     private List<TopService> topServices;
     private List<StaffPerformance> staffPerformance;
     private List<InventoryAlert> inventoryAlerts;
+    private List<PackageOffer> packageOffers;
 
     @Data
     @AllArgsConstructor
@@ -56,5 +59,19 @@ public class DashboardDetailsResponse {
         private String productName;
         private Long stock;
         private String status;
+    }
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PackageOffer{
+        private Long packageId;
+        private String packageName;
+        private Double packagePrice;
+        private LocalDateTime createdAt;
+        private String category;
+        private String description;
+        private Integer durationMinutes;
+        private List<PackageServiceItemModel> services;
+
     }
 }

@@ -1,6 +1,7 @@
 package com.proto.BIS.common.Service;
 
 import com.proto.BIS.Appointment.Model.AppointmentItemModel;
+import com.proto.BIS.Package.Model.PackageModel;
 import com.proto.BIS.common.DTO.DashboardDetailsResponse;
 import com.proto.BIS.common.DTO.DashboardSummaryResponse;
 import jakarta.persistence.EntityManager;
@@ -40,7 +41,8 @@ public class DashboardService {
                 upcomingAppointments(today, LocalTime.now()),
                 topServices(from),
                 staffPerformance(from),
-                inventoryAlerts());
+                inventoryAlerts(),
+                newestPackages());
     }
 
     private List<DashboardDetailsResponse.AppointmentRow> recentAppointments() {
@@ -224,6 +226,16 @@ public class DashboardService {
             result.add(new DashboardSummaryResponse.DailyCount(day, counts.getOrDefault(day, 0L)));
         }
         return result;
+    }
+    private List<DashboardDetailsResponse.PackageOffer> newestPackages() {
+        return em.createQuery(
+                        "select p from PackageModel p where upper(p.status) = 'ACTIVE' order by p.createdAt desc",
+                        PackageModel.class)
+                .setMaxResults(5)
+                .getResultList().stream()
+                .map(p -> new DashboardDetailsResponse.PackageOffer(
+                        p.getPackageId(), p.getPackageName(), p.getPackagePrice(), p.getCreatedAt(), p.getDescription(), p.getCategory(),p.getDurationMinutes(),p.getServices()))
+                .toList();
     }
 
     private Double pct(double current, double previous) {

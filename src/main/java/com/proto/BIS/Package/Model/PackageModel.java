@@ -52,4 +52,6 @@ public class PackageModel {
     @OneToMany(mappedBy = "packageModel", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<PackageServiceItemModel> services = new ArrayList<>();
+
+
 }

@@ -2,6 +2,7 @@ package com.proto.BIS.Package.Service;
 
 import com.proto.BIS.Package.DTO.PackageRequest;
 import com.proto.BIS.Package.Model.PackageModel;
+import com.proto.BIS.Package.Model.PackageServiceItemModel;
 import com.proto.BIS.Package.Repository.PackageRepository;
 import com.proto.BIS.common.Model.ServicesModel;
 import com.proto.BIS.common.Repository.WorkRepo;
@@ -64,5 +65,34 @@ class PackageServiceTest {
         request.setServices(List.of(item));
         when(workRepo.findById(99)).thenReturn(Optional.empty());
         assertThrows(jakarta.persistence.EntityNotFoundException.class, () -> service.create(request));
+    }
+
+    @Test
+    void updatesExistingServiceItemWithoutCreatingDuplicateLink() {
+        ServicesModel serviceModel = ServicesModel.builder().serviceId(2L).serviceName("Facial").servicePrice(50).build();
+        PackageServiceItemModel existingItem = PackageServiceItemModel.builder()
+                .service(serviceModel).quantity(1).build();
+        PackageModel packageModel = PackageModel.builder()
+                .packageId(2L).packageName("Combo").services(new java.util.ArrayList<>(List.of(existingItem))).build();
+        existingItem.setPackageModel(packageModel);
+
+        PackageRequest request = new PackageRequest();
+        request.setPackageName("Updated Combo");
+        request.setServices(List.of(serviceItem()));
+        when(packageRepo.findById(2L)).thenReturn(Optional.of(packageModel));
+        when(workRepo.findById(2)).thenReturn(Optional.of(serviceModel));
+
+        var response = service.update(2L, request);
+
+        assertEquals(1, response.getServices().size());
+        assertEquals(3, response.getServices().getFirst().getQuantity());
+        verify(packageRepo, never()).save(any(PackageModel.class));
+    }
+
+    private PackageRequest.ServiceItemRequest serviceItem() {
+        PackageRequest.ServiceItemRequest item = new PackageRequest.ServiceItemRequest();
+        item.setServiceId(2L);
+        item.setQuantity(3);
+        return item;
     }
 }

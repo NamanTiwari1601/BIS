@@ -1,5 +1,6 @@
 package com.proto.BIS.Package.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.proto.BIS.common.Model.ServicesModel;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,6 +19,7 @@ public class PackageServiceItemModel {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "package_id", nullable = false)
+    @JsonIgnore
     private PackageModel packageModel;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

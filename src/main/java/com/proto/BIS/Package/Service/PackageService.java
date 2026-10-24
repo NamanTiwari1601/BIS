@@ -14,7 +14,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -65,13 +67,27 @@ public class PackageService {
         model.setPackagePrice(request.getPackagePrice());
         model.setDurationMinutes(request.getDurationMinutes());
         model.setStatus(request.getStatus() == null ? "ACTIVE" : request.getStatus().toUpperCase());
-        model.getServices().clear();
+        Map<Long, PackageRequest.ServiceItemRequest> requestedServices = new HashMap<>();
+        for (PackageRequest.ServiceItemRequest item : request.getServices()) {
+            requestedServices.put(item.getServiceId(), item);
+        }
+
+        model.getServices().removeIf(item -> !requestedServices.containsKey(item.getService().getServiceId()));
         for (PackageRequest.ServiceItemRequest item : request.getServices()) {
             ServicesModel service = serviceRepository.findById(item.getServiceId().intValue())
                     .orElseThrow(() -> new EntityNotFoundException("Service not found: " + item.getServiceId()));
-            model.getServices().add(PackageServiceItemModel.builder().packageModel(model).service(service).quantity(item.getQuantity()).build());
+            PackageServiceItemModel existingItem = model.getServices().stream()
+                    .filter(packageServiceItem -> packageServiceItem.getService().getServiceId().equals(item.getServiceId()))
+                    .findFirst()
+                    .orElse(null);
+            if (existingItem == null) {
+                model.getServices().add(PackageServiceItemModel.builder()
+                        .packageModel(model).service(service).quantity(item.getQuantity()).build());
+            } else {
+                existingItem.setQuantity(item.getQuantity());
+            }
         }
-        return toResponse(packageRepository.save(model));
+        return toResponse(model.getPackageId() == null ? packageRepository.save(model) : model);
     }
 
     private PackageModel find(Long id) {
