@@ -7,8 +7,10 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UserRepo extends JpaRepository<UserModel,Integer> {
+public interface UserRepo extends JpaRepository<UserModel, Integer> {
     Optional<UserModel> findByUserName(String userName);
+
+    Optional<UserModel> findByAadhaarNumber(String aadhaarNumber);
 
 
 }

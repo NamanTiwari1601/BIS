@@ -1,5 +1,6 @@
 package com.proto.BIS.common.Model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.validation.Valid;
@@ -36,16 +37,33 @@ public class UserModel {
     @Past(message="Date of birth must be in the past")
     private LocalDate userDOB;
 
-    @Pattern(regexp = "^(A|B|AB|O)[+-]$",message="Invalid Blood Type")
-    @Column(columnDefinition = "varchar(2)")
-    private String userBloodType;
+//    @Pattern(regexp = "^(A|B|AB|O)[+-]$",message="Invalid Blood Type")
+//    @Column(columnDefinition = "varchar(2)")
+//    private String userBloodType;
 
     private boolean userAdmin;
 
-    @NotBlank(message="password must be at least 6 characters")
     @Size(min=6,message = "password must be at least 6 characters")
     private String  userPass;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Pattern(regexp = "^\\d{12}$", message = "Aadhaar number must be 12 digits")
+    @Column(name = "aadhaar_number")
+    private String aadhaarNumber;
 
+    @Column(name = "photo", columnDefinition = "TEXT")
+    private String photo;
+
+    @Column(name = "joining_date")
+    private LocalDate joiningDate;
+
+    @Column(name = "work_timing", nullable = false)
+    private String workTiming = "FULL_DAY";   // FULL_DAY or HALF_DAY
+
+    public String getAadhaarMasked() {
+        return (aadhaarNumber == null || aadhaarNumber.length() < 4)
+                ? null
+                : "XXXX XXXX " + aadhaarNumber.substring(aadhaarNumber.length() - 4);
+    }
 
 
 }

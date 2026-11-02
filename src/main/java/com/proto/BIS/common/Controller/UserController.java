@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -23,17 +22,16 @@ import java.util.List;
 @RequestMapping("/api/User")
 @RequiredArgsConstructor
 @CrossOrigin("http://localhost:5173")
-@Tag(name="User", description = "Manages Users")
+@Tag(name = "User", description = "Manages Users")
 public class UserController {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
-    @Autowired
-    UserService service;
+    private final UserService service;
 
     @GetMapping("/getUsers")
     @Operation(summary = "get all Users", description = "Returns a list of all users")
-    public List<UserModel> getUsers(){
+    public List<UserModel> getUsers() {
         log.info("In get users");
         return service.getUsers();
     }
@@ -49,36 +47,39 @@ public class UserController {
     }
 
     @GetMapping("/getUser/{usrId}")
-    @Operation(summary = "get user by id", description="Return a user  by userId")
-    public UserModel getUserById(@PathVariable int usrId){
+    @Operation(summary = "get user by id", description = "Return a user  by userId")
+    public UserModel getUserById(@PathVariable int usrId) {
         log.info("In get user by id: {}", usrId);
         return service.getUserById(usrId);
     }
 
     @PostMapping("/addUser")
     @Operation(summary = "Add a new User")
-    public ResponseEntity<UserModel> addUser(@Valid @RequestBody UserModel mod){
+    public ResponseEntity<UserModel> addUser(@Valid @RequestBody UserModel mod) {
         log.info("In add user");
         return ResponseEntity.status(HttpStatus.CREATED).body(service.addUser(mod));
     }
+
     @PutMapping("/updateUser")
     @Operation(summary = "Update a User")
-    public ResponseEntity<UserModel> updateUser(@RequestBody UserModel mod){
-       log.info("In update user");
-       return ResponseEntity.ok( service.updateUser(mod));
+    public ResponseEntity<UserModel> updateUser(@Valid @RequestBody UserModel mod) {
+        log.info("In update user");
+        return ResponseEntity.ok(service.updateUser(mod));
     }
+
     @DeleteMapping("/deleteUser/{usrId}")
     @Operation(summary = "Delete a user by Id")
-    public void deleteUser(@PathVariable int usrId){
+    public ResponseEntity<Void> deleteUser(@PathVariable int usrId) {
         log.info("In delete user: {}", usrId);
         service.deleteUser(usrId);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/changePassword/{userId}")
-    @Operation(summary="change password of a user")
-    public ResponseEntity<?> changePassword(@PathVariable int userId, @RequestBody ChangePasswordRequest request){
+    @Operation(summary = "change password of a user")
+    public ResponseEntity<?> changePassword(@PathVariable int userId, @RequestBody ChangePasswordRequest request) {
         log.info("In change password for user: {}", userId);
-        try{
+        try {
             service.changePassword(userId, request);
             return ResponseEntity.ok("Password Changed Successfully");
         } catch (IllegalArgumentException e) {

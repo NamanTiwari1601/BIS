@@ -86,11 +86,11 @@ public class ClientService {
                     return new IllegalArgumentException("Client not found: " + id);
                 });
         validate(request);
-        repo.findByClientPhone(request.getClientPhone().trim())
-                .filter(other -> !other.getClientId().equals(id))
-                .ifPresent(other -> {
-                    throw new IllegalArgumentException("Another client already uses this phone number");
-                });
+//        repo.findByClientPhone(request.getClientPhone().trim())
+//                .filter(other -> !other.getClientId().equals(id))
+//                .ifPresent(other -> {
+//                    throw new IllegalArgumentException("Another client already uses this phone number");
+//                });
         applyRequest(model, request);
         log.info("Updating client {}", id);
         return maptoresponse(repo.save(model));
