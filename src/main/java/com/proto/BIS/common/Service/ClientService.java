@@ -6,6 +6,7 @@ import com.proto.BIS.common.Model.ClientModel;
 import com.proto.BIS.common.Repository.ClientRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +28,8 @@ public class ClientService {
 
     private final ClientRepo repo;
 
-    public List<ClientResponse> getClientsList(){
-    return repo.findAll().stream().map(this::maptoresponse).toList();
+    public List<ClientResponse> getClientsList() {
+        return repo.findAll().stream().map(this::maptoresponse).toList();
     }
 
     public Page<ClientResponse> getClientPaged(String q, Pageable pageable) {
@@ -56,6 +57,7 @@ public class ClientService {
             return response;
         });
     }
+
     public ClientStatsResponse getStats() {
         LocalDateTime monthStart = LocalDate.now().withDayOfMonth(1).atStartOfDay();
         return new ClientStatsResponse(
@@ -63,6 +65,7 @@ public class ClientService {
                 repo.countByCreatedAtGreaterThanEqual(monthStart),
                 repo.countReturning());
     }
+
     public ClientResponse addClient(ClientRequest request) {
         validate(request);
         String phone = request.getClientPhone().trim();
@@ -96,6 +99,24 @@ public class ClientService {
         return maptoresponse(repo.save(model));
     }
 
+    public void deleteClient(Long id) {
+        ClientModel client = repo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Client not found: " + id));
+
+        String blocked = "This client has bills or appointments, so it can't be deleted. Set the client to Inactive instead.";
+        if (repo.countHistory(id) > 0) {
+            log.warn("Delete blocked for client {}: history exists", id);
+            throw new IllegalArgumentException(blocked);
+        }
+        try {
+            repo.delete(client);
+            repo.flush();
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Delete blocked for client {}: still referenced", id);
+            throw new IllegalArgumentException(blocked);
+        }
+    }
+
     private void applyRequest(ClientModel model, ClientRequest request) {
         model.setClientName(request.getClientName().trim());
         model.setClientPhone(request.getClientPhone().trim());
@@ -115,15 +136,16 @@ public class ClientService {
             throw new IllegalArgumentException("Phone number must be 10 digits");
         }
     }
-    private ClientResponse maptoresponse(ClientModel model){
-    ClientResponse response=new ClientResponse();
-     response.setClientId(model.getClientId());
-     response.setClientName(model.getClientName());
-     response.setClientEmail(model.getClientEmail());
-     response.setClientPhone(model.getClientPhone());
-     response.setStatus(model.getStatus());
-     response.setNotes(model.getNotes());
 
-    return response;
+    private ClientResponse maptoresponse(ClientModel model) {
+        ClientResponse response = new ClientResponse();
+        response.setClientId(model.getClientId());
+        response.setClientName(model.getClientName());
+        response.setClientEmail(model.getClientEmail());
+        response.setClientPhone(model.getClientPhone());
+        response.setStatus(model.getStatus());
+        response.setNotes(model.getNotes());
+
+        return response;
     }
 }

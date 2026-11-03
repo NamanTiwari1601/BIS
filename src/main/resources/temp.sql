@@ -1,1 +1,1 @@
-select * from s_bill
+select * from flyway_schema_history

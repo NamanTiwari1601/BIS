@@ -35,4 +35,7 @@ public interface ClientRepo extends JpaRepository<ClientModel, Long> {
     long countReturning();
 
     long countByCreatedAtGreaterThanEqual(LocalDateTime since);
+
+    @Query(value = "select (select count(*) from s_bill where client_id = :id) + (select count(*) from s_appointment where client_id = :id)", nativeQuery = true)
+    long countHistory(@Param("id") Long id);
 }

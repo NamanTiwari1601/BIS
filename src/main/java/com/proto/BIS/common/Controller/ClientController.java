@@ -103,4 +103,19 @@ public class ClientController {
         log.info("In update client: {}", id);
         return ResponseEntity.ok(clientService.updateClient(id, request));
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(
+            summary = "Delete a client",
+            description = "Deletes an existing client by ID.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Client deleted successfully"),
+            @ApiResponse(responseCode = "400", description = "Client not found", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Unexpected server error", content = @Content)
+    })
+    public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
+        log.info("In delete client: {}", id);
+        clientService.deleteClient(id);
+        return ResponseEntity.noContent().build();
+    }
 }
