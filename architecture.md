@@ -47,6 +47,18 @@ src/main/java/com/proto/BIS/
 │   ├── Model/
 │   ├── Repository/
 │   └── Service/
+├── Loyalty/
+│   ├── Controller/
+│   ├── DTO/
+│   ├── Model/
+│   ├── Repository/
+│   └── Service/
+├── Dealer/
+│   ├── Controller/
+│   ├── DTO/
+│   ├── Model/
+│   ├── Repository/
+│   └── Service/
 └── common/
     ├── Config/
     ├── Controller/
@@ -135,15 +147,23 @@ The application uses Spring Security with stateless session management.
   - `/api/auth/**`
   - `/swagger-ui/**`
   - `/v3/api-docs/**`
-  - `/api/bill/**`
 - Sensitive endpoints require authentication:
+  - `/api/bill/**`
   - `/api/dues/**`
   - `/api/product/**`
   - `/api/service/**`
   - `/api/inventory/**`
+  - `/api/dealer/**` (administrator role required)
+  - `/api/loyalty/**` (authenticated staff and administrators)
   - `/api/User/**`
 
 Password hashing is handled with `BCryptPasswordEncoder`.
+
+Bill creation and history require an authenticated user. Bill dates supplied during creation are honored only for administrators. `PUT /api/bill/{billId}` and `DELETE /api/bill/{billId}` are administrator-only; deletion requires `restoreStock` and `restoreDues` query parameters. Bill edits and deletions reconcile product stock and linked dues in a database transaction.
+
+Dealer management endpoints require an administrator JWT (`isAdmin: true`). The JWT filter maps that claim to `ROLE_ADMIN`. Dealer purchasing is exposed under `/api/dealer`: `GET /page` searches paginated dealer summaries, `POST /add` creates a dealer, `GET /{dealerId}` retrieves details, and `PUT /{dealerId}` updates a dealer and its product associations. `POST /{dealerId}/bills` records an itemized purchase bill, `POST /{dealerId}/bills/{billId}/payments` appends a payment, and `POST /{dealerId}/deliveries` records a delivery optionally linked to a bill.
+
+Loyalty cards are exposed under `/api/loyalty/cards`. `GET` lists cards, `POST` creates a client with date of birth and a card for one service, `POST /{id}/paid-visits` records a paid visit up to nine, and `POST /{id}/free-visit` records the tenth visit for free and starts the next cycle. Card creation and visit changes are transactional; visit updates lock the card row, and PostgreSQL constraints enforce one card per client/service and the nine-paid-visit limit.
 
 ---
 
@@ -155,12 +175,10 @@ Password hashing is handled with `BCryptPasswordEncoder`.
 - Persistence: Spring Data JPA
 - Schema management: Flyway migration scripts under `src/main/resources/db/migration/`
 
-Current migrations include:
-
-- `V1__init_schema.sql`
-- `V2__service_product.sql`
+`V11__bill_item_stock_usage.sql` adds the product-consumption snapshots used to restore service-related stock accurately. `V12__dealer_purchasing.sql` creates dealer/product associations, itemized purchase bills, payment history, and delivery records. `V13__loyalty_cards.sql` creates persistent service-specific loyalty cards and visit counters; it uses the client date-of-birth column introduced in V9.
 
 The application is configured with `spring.jpa.hibernate.ddl-auto=validate`, meaning the schema is expected to match the database structure already defined by migrations.
+Flyway is currently disabled by default, so apply any new migration to the database before deploying the matching application version.
 
 ---
 
@@ -172,7 +190,7 @@ Key service classes are annotated with `@Service` and use transactional boundari
 
 Example patterns:
 
-- `BillService.createBill(...)` creates a bill, validates product/service stock, updates quantities, applies discount/GST, and creates due records if applicable
+- `BillService.createBill(...)` creates a bill, validates product/service stock, snapshots consumed product quantities, applies discount/GST, and creates due records if applicable
 - `ProductService` handles CRUD-style inventory product operations
 - `InventoryService` provides inventory-specific workflows
 

@@ -27,6 +27,12 @@ public class BillResponseDTO {
     private String staffName;
     private String clientName;
     private String paymentMode;
+    private String clientEmail;
+    private String clientPhone;
+    private String notes;
+    private Double discountAmount;
+    private Double gstPercent;
+    private Double dueAmount;
 
     private List<BillItemResponseDTO> items;
 }

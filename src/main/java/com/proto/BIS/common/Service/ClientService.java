@@ -145,6 +145,7 @@ public class ClientService {
         response.setClientPhone(model.getClientPhone());
         response.setStatus(model.getStatus());
         response.setNotes(model.getNotes());
+        response.setDateOfBirth(model.getDateOfBirth());
 
         return response;
     }

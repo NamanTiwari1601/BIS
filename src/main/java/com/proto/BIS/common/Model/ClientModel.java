@@ -13,6 +13,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Component
 @Entity
@@ -49,6 +50,9 @@ public class ClientModel {
     @Size(max = 500, message = "Client notes cannot exceed 500 characters")
     @Column(length = 500)
     private String notes;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
 
     @CreationTimestamp
     @Column(nullable = false)

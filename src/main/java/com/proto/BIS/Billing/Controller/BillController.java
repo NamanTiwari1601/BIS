@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -31,9 +32,9 @@ public class BillController {
 
     @PostMapping("/create")
     @Operation(summary = "create Bills", description="create bills by this")
-    public ResponseEntity<?> createBill(@RequestBody BillRequestDTO bill){
+    public ResponseEntity<?> createBill(@RequestBody BillRequestDTO bill, Principal principal){
         log.info("In create bill");
-            BillResponseDTO save=service.createBill(bill);
+            BillResponseDTO save=service.createBill(bill, principal.getName());
             return ResponseEntity.status(HttpStatus.CREATED).body(save);
 
     }
@@ -56,6 +57,26 @@ public class BillController {
     public ResponseEntity<BillResponseDTO> getBillsById (@PathVariable int billsId){
         log.info("In get bill By id");
         return ResponseEntity.ok(service.getBillById(billsId));
+    }
+
+    @PutMapping("/{billId}")
+    @Operation(summary = "Update a bill", description = "Updates a bill and reconciles its stock and dues")
+    public ResponseEntity<BillResponseDTO> updateBill(
+            @PathVariable int billId,
+            @RequestBody BillRequestDTO bill,
+            Principal principal) {
+        return ResponseEntity.ok(service.updateBill(billId, bill, principal.getName()));
+    }
+
+    @DeleteMapping("/{billId}")
+    @Operation(summary = "Delete a bill", description = "Deletes a bill with optional stock and dues restoration")
+    public ResponseEntity<Void> deleteBill(
+            @PathVariable int billId,
+            @RequestParam boolean restoreStock,
+            @RequestParam boolean restoreDues,
+            Principal principal) {
+        service.deleteBill(billId, restoreStock, restoreDues, principal.getName());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/history")

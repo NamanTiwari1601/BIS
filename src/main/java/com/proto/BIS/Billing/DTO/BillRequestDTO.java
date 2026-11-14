@@ -27,6 +27,7 @@ public class BillRequestDTO {
     private Double cashAmount;
     private Double onlineAmount;
     private String invoiceId;
+    private LocalDate billDate;
     private List<BillItemRequestDTO> items;
 
 

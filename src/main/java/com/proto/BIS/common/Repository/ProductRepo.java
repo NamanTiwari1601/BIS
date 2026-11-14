@@ -4,10 +4,13 @@ import com.proto.BIS.common.Model.ProductModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
 public interface ProductRepo extends JpaRepository<ProductModel,Integer> {
 
     List<ProductModel> findByProductQuantityLessThan(int Quantity);
+
+    List<ProductModel> findAllByProductIdIn(Collection<Long> productIds);
 }

@@ -7,8 +7,13 @@ import com.proto.BIS.Package.Model.PackageModel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @Entity
@@ -48,4 +53,12 @@ public class BillItemModel {
     private int  quantity;
 
     private  double subtotal;
+
+    @OneToMany(mappedBy = "billItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<BillItemStockModel> stockConsumptions = new ArrayList<>();
+
+    @Column(name = "stock_usage_captured", nullable = false)
+    private boolean stockUsageCaptured;
 }   
