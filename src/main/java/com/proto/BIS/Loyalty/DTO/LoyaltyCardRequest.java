@@ -6,9 +6,12 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.FutureOrPresent;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class LoyaltyCardRequest {
@@ -25,6 +28,17 @@ public class LoyaltyCardRequest {
     private LocalDate dateOfBirth;
 
     @NotNull
+    @FutureOrPresent
+    private LocalDate expiryDate;
+
+    @Size(max = 100)
+    private List<@NotNull @Positive Long> serviceIds;
+
     @Positive
     private Long serviceId;
+
+    @AssertTrue(message = "Select at least one service")
+    public boolean isServiceSelectionValid() {
+        return (serviceIds != null && !serviceIds.isEmpty()) || serviceId != null;
+    }
 }

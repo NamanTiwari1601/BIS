@@ -2,6 +2,7 @@ package com.proto.BIS.Loyalty.Service;
 
 import com.proto.BIS.Loyalty.DTO.LoyaltyCardRequest;
 import com.proto.BIS.Loyalty.DTO.LoyaltyCardResponse;
+import com.proto.BIS.Loyalty.DTO.LoyaltyCardResponse.ServiceInfo;
 import com.proto.BIS.Loyalty.Model.LoyaltyCardModel;
 import com.proto.BIS.Loyalty.Repository.LoyaltyCardRepository;
 import com.proto.BIS.common.Model.ClientModel;
@@ -13,7 +14,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -35,23 +40,23 @@ public class LoyaltyCardService {
     public LoyaltyCardResponse create(LoyaltyCardRequest request) {
         String clientName = request.getClientName().trim();
         String clientPhone = request.getClientPhone().trim();
-        if (request.getServiceId() > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException("Invalid service ID");
-        }
 
         ClientModel client = clientRepository.findByClientPhone(clientPhone)
                 .map(existing -> useExistingClient(existing, clientName, request.getDateOfBirth()))
                 .orElseGet(() -> createClient(clientName, clientPhone, request.getDateOfBirth()));
-        ServicesModel service = serviceRepository.findById(request.getServiceId().intValue())
-                .orElseThrow(() -> new EntityNotFoundException("Service not found: " + request.getServiceId()));
-
-        if (loyaltyCardRepository.existsByClient_ClientIdAndService_ServiceId(client.getClientId(), service.getServiceId())) {
-            throw new IllegalArgumentException("This client already has a loyalty card for the selected service");
-        }
 
         LoyaltyCardModel card = new LoyaltyCardModel();
         card.setClient(client);
-        card.setService(service);
+        card.setExpiryDate(request.getExpiryDate());
+        card.setServices(resolveServices(request));
+        return toResponse(loyaltyCardRepository.save(card));
+    }
+
+    public LoyaltyCardResponse update(Long id, LoyaltyCardRequest request) {
+        LoyaltyCardModel card = findForUpdate(id);
+        updateClient(card.getClient(), request);
+        card.setExpiryDate(request.getExpiryDate());
+        card.setServices(resolveServices(request));
         return toResponse(loyaltyCardRepository.save(card));
     }
 
@@ -97,6 +102,43 @@ public class LoyaltyCardService {
         return clientRepository.save(client);
     }
 
+    private void updateClient(ClientModel client, LoyaltyCardRequest request) {
+        String clientName = request.getClientName().trim();
+        String clientPhone = request.getClientPhone().trim();
+        clientRepository.findByClientPhone(clientPhone)
+                .filter(phoneOwner -> !Objects.equals(phoneOwner.getClientId(), client.getClientId()))
+                .ifPresent(phoneOwner -> {
+                    throw new IllegalArgumentException("This phone number already belongs to a different client");
+                });
+        client.setClientName(clientName);
+        client.setClientPhone(clientPhone);
+        client.setDateOfBirth(request.getDateOfBirth());
+        clientRepository.save(client);
+    }
+
+    private Set<ServicesModel> resolveServices(LoyaltyCardRequest request) {
+        List<Long> serviceIds = request.getServiceIds();
+        if (serviceIds == null || serviceIds.isEmpty()) {
+            serviceIds = request.getServiceId() == null ? List.of() : List.of(request.getServiceId());
+        }
+        if (serviceIds.isEmpty()) {
+            throw new IllegalArgumentException("Select at least one service");
+        }
+        if (new HashSet<>(serviceIds).size() != serviceIds.size()) {
+            throw new IllegalArgumentException("A service can only be selected once");
+        }
+
+        Set<ServicesModel> services = new LinkedHashSet<>();
+        for (Long serviceId : serviceIds) {
+            if (serviceId == null || serviceId <= 0 || serviceId > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException("Invalid service ID");
+            }
+            services.add(serviceRepository.findById(serviceId.intValue())
+                    .orElseThrow(() -> new EntityNotFoundException("Service not found: " + serviceId)));
+        }
+        return services;
+    }
+
     private LoyaltyCardModel findForUpdate(Long id) {
         return loyaltyCardRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new EntityNotFoundException("Loyalty card not found: " + id));
@@ -104,15 +146,25 @@ public class LoyaltyCardService {
 
     private LoyaltyCardResponse toResponse(LoyaltyCardModel card) {
         ClientModel client = card.getClient();
-        ServicesModel service = card.getService();
+        List<ServiceInfo> services = card.getServices().stream()
+                .sorted((first, second) -> first.getServiceId().compareTo(second.getServiceId()))
+                .map(service -> ServiceInfo.builder()
+                        .serviceId(service.getServiceId())
+                        .serviceName(service.getServiceName())
+                        .build())
+                .toList();
+        ServiceInfo firstService = services.isEmpty() ? null : services.get(0);
         return LoyaltyCardResponse.builder()
                 .loyaltyCardId(card.getLoyaltyCardId())
                 .clientId(client.getClientId().longValue())
                 .clientName(client.getClientName())
                 .clientPhone(client.getClientPhone())
                 .dateOfBirth(client.getDateOfBirth())
-                .serviceId(service.getServiceId())
-                .serviceName(service.getServiceName())
+                .expiryDate(card.getExpiryDate())
+                .serviceIds(services.stream().map(ServiceInfo::getServiceId).toList())
+                .services(services)
+                .serviceId(firstService == null ? null : firstService.getServiceId())
+                .serviceName(firstService == null ? null : firstService.getServiceName())
                 .paidVisits(card.getPaidVisits())
                 .freeVisits(card.getFreeVisits())
                 .build();

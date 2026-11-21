@@ -28,6 +28,11 @@ public class LoyaltyCardController {
         return ResponseEntity.status(HttpStatus.CREATED).body(loyaltyCardService.create(request));
     }
 
+    @PutMapping("/{id}")
+    public LoyaltyCardResponse update(@PathVariable Long id, @Valid @RequestBody LoyaltyCardRequest request) {
+        return loyaltyCardService.update(id, request);
+    }
+
     @PostMapping("/{id}/paid-visits")
     public LoyaltyCardResponse recordPaidVisit(@PathVariable Long id) {
         return loyaltyCardService.recordPaidVisit(id);

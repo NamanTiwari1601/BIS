@@ -13,8 +13,6 @@ import java.util.Optional;
 public interface LoyaltyCardRepository extends JpaRepository<LoyaltyCardModel, Long> {
     List<LoyaltyCardModel> findAllByOrderByLoyaltyCardIdDesc();
 
-    boolean existsByClient_ClientIdAndService_ServiceId(Integer clientId, Long serviceId);
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT card FROM LoyaltyCardModel card WHERE card.loyaltyCardId = :id")
     Optional<LoyaltyCardModel> findByIdForUpdate(@Param("id") Long id);
